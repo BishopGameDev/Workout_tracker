@@ -473,7 +473,7 @@
       <div class="title-row">
         <div>
           <h1>12-Week Training Tracker</h1>
-          <p class="subtle">Four-day strength split · Saturday Pilates · Sunday walk or rest</p>
+          <p class="subtle">Four-day split · Saturday Pilates · Sunday rest + longer walk</p>
         </div>
       </div>
 
@@ -576,86 +576,75 @@
   </main>
 
   <script>
-    const STORAGE_KEY = 'training-tracker-v1';
-    const START_DATE = new Date('2026-07-27T12:00:00');
+    const STORAGE_KEY = 'training-tracker-v2';
 
+    // Noon local time prevents browser timezone conversion from moving a date
+    // backward or forward when formatting it.
+    const START_DATE = new Date(2026, 6, 27, 12, 0, 0, 0);
+
+    // Exact four-day split supplied by the user.
+    // Supersets are kept together as single workout rows.
     const split = [
       {
         key: 'day1',
         dayOffset: 0,
-        name: 'Day 1 — Lower Strength',
-        type: 'Strength',
+        name: 'Monday — Glutes and Quads',
+        type: 'Glutes + Quads',
         exercises: [
-          ['Back Squat', 4, '5'],
-          ['Romanian Deadlift', 3, '8'],
-          ['Reverse Lunges', 3, '8 / leg'],
-          ['Step-Ups', 3, '10 / leg'],
-          ['Calf Raises', 4, '12'],
-          ['Plank', 3, '40–60 sec']
+          ['Back Squats', 5, '5'],
+          ['Narrow Stance Smith Squat', 4, '10'],
+          ['KGS Glute Bridges', 4, '10'],
+          ['Bulgarians SS Goblet', 4, '10'],
+          ['Leg Extension', 4, 'Until failure'],
+          ['Machine Cable Kickbacks', 4, '8']
         ]
       },
       {
         key: 'day2',
         dayOffset: 1,
-        name: 'Day 2 — Upper Strength',
-        type: 'Strength',
+        name: 'Tuesday — Back & Biceps',
+        type: 'Back + Biceps',
         exercises: [
-          ['Bench Press', 4, '5'],
-          ['Bent-Over Row', 4, '6'],
-          ['Overhead Press', 3, '8'],
-          ['Lat Pulldown', 3, '10'],
-          ['Biceps Curls', 3, '10'],
-          ['Triceps Pushdowns', 3, '10']
+          ['Barbell Bent-Over Rows', 4, '6–8'],
+          ['EZ-Bar Curls', 4, '8'],
+          ['Cable Bicep Curls', 4, '8'],
+          ['Seated Machine Row', 4, '10'],
+          ['High Row', 4, '10'],
+          ['Lat Pulldown', 4, '10']
         ]
       },
       {
         key: 'day3',
         dayOffset: 3,
-        name: 'Day 3 — Lower: Glutes + Conditioning',
-        type: 'Strength + Conditioning',
+        name: 'Thursday — Glute',
+        type: 'Glute',
         exercises: [
-          ['Hip Thrusts', 4, '8'],
-          ['Leg Press', 3, '10'],
-          ['Bulgarian Split Squats', 3, '8 / leg'],
-          ['Hamstring Curls', 3, '12'],
-          ['Walking Lunges', 2, '20 steps'],
-          ['StairMaster', 1, '10–15 min']
+          ['Heavy Hip Thrust', 4, '8'],
+          ['Front Foot Elevated Reverse Lunge on Smith', 4, '8'],
+          ['Barbell RDL', 4, '8'],
+          ['Hamstring Curls', 4, '8'],
+          ['Leg Press', 4, '8']
         ]
       },
       {
         key: 'day4',
         dayOffset: 4,
-        name: 'Day 4 — Upper Volume',
-        type: 'Volume',
+        name: 'Friday — Chest, Arms, and Shoulders',
+        type: 'Chest + Arms + Shoulders',
         exercises: [
-          ['Incline Dumbbell Press', 4, '10'],
-          ['Seated Cable Row', 4, '10'],
-          ['Lateral Raises', 3, '12'],
-          ['Face Pulls', 3, '15'],
-          ['Push-Ups', 3, 'AMRAP'],
-          ['Hanging Knee Raises', 3, '12']
+          ['DB Bench Press', 5, '5'],
+          ['Heavy Seated DB Shoulder Press', 5, '5'],
+          ['Lateral Raises', 4, '10'],
+          ['Front Raise SS Upright Row', 4, '10'],
+          ['Chest Fly', 4, '8'],
+          ['Tricep Pushdown SS Overhead Tricep Extension on Cables', 4, '10']
         ]
       }
     ];
 
     const support = [
-      { key: 'pilates', dayOffset: 5, name: 'Saturday Pilates', type: 'Pilates' },
-      { key: 'sunday', dayOffset: 6, name: 'Sunday Walk / Rest', type: 'Recovery' }
-    ];
-
-    const phaseNames = [
-      'Baseline',
-      'Build',
-      'Build',
-      'Push',
-      'Deload',
-      'Build',
-      'Build',
-      'Push',
-      'Deload',
-      'Build',
-      'Peak',
-      'Consolidate'
+      { key: 'pilates', dayOffset: 5, name: 'Saturday — Pilates', type: 'Pilates' },
+      { key: 'sunday', dayOffset: 6, name: 'Sunday — Rest + Longer Walk', type: 'Recovery' }
     ];
 
     function addDays(date, days) {
@@ -664,7 +653,12 @@
       return next;
     }
 
-    function iso(date) { return date.toISOString().slice(0, 10); }
+    function iso(date) {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    }
 
     function formatDate(date, options = { month: 'short', day: 'numeric' }) {
       return date.toLocaleDateString('en-US', options);
@@ -692,13 +686,35 @@
           number,
           start,
           end: addDays(start, 6),
-          phase: phaseNames[index],
           sessions
         };
       });
     }
 
     const plan = buildPlan();
+
+    function validatePlanDates() {
+      const expectedWeekdays = {
+        day1: 1,      // Monday
+        day2: 2,      // Tuesday
+        day3: 4,      // Thursday
+        day4: 5,      // Friday
+        pilates: 6,   // Saturday
+        sunday: 0     // Sunday
+      };
+
+      plan.forEach(week => {
+        week.sessions.forEach(session => {
+          if (session.date.getDay() !== expectedWeekdays[session.key]) {
+            throw new Error(
+              `Date mismatch: ${session.name} in week ${week.number}`
+            );
+          }
+        });
+      });
+    }
+
+    validatePlanDates();
 
     function blankState() {
       const entries = {};
@@ -748,10 +764,10 @@
 
     function renderSelectedWeek() {
       const week = plan[state.selectedWeek - 1];
-      document.getElementById('weekTitle').textContent = `Week ${week.number} · ${week.phase}`;
+      document.getElementById('weekTitle').textContent = `Week ${week.number}`;
       document.getElementById('weekSubtitle').textContent =
         `${formatDate(week.start, { month: 'long', day: 'numeric' })}–${formatDate(week.end, { month: 'long', day: 'numeric', year: 'numeric' })}`;
-      document.getElementById('weekBadge').textContent = `${week.phase} Week`;
+      document.getElementById('weekBadge').textContent = '4-Day Split';
 
       const availableKeys = ['day1', 'day2', 'wednesday', 'day3', 'day4', 'pilates', 'sunday'];
       if (!availableKeys.includes(state.selectedSessionKey)) {
@@ -776,13 +792,13 @@
 
     function renderDaySelector(week) {
       const labels = {
-        day1: ['Mon', 'Lower Strength'],
-        day2: ['Tue', 'Upper Strength'],
+        day1: ['Mon', 'Glutes + Quads'],
+        day2: ['Tue', 'Back + Biceps'],
         wednesday: ['Wed', 'Rest'],
-        day3: ['Thu', 'Lower + Cond.'],
-        day4: ['Fri', 'Upper Volume'],
+        day3: ['Thu', 'Glute'],
+        day4: ['Fri', 'Chest + Arms'],
         pilates: ['Sat', 'Pilates'],
-        sunday: ['Sun', 'Walk / Rest']
+        sunday: ['Sun', 'Walk + Rest']
       };
 
       const orderedKeys = ['day1', 'day2', 'wednesday', 'day3', 'day4', 'pilates', 'sunday'];
@@ -832,8 +848,8 @@
             </div>
           </div>
           <div style="padding:18px 14px;">
-            <strong>Full rest or light recovery</strong>
-            <p class="small subtle" style="margin:8px 0 0;">No workout entry required.</p>
+            <strong>Rest day</strong>
+            <p class="small subtle" style="margin:8px 0 0;">No workout scheduled.</p>
           </div>
         </article>
       `;
@@ -845,7 +861,7 @@
       const badgeText = entry.completed ? 'Done' : session.type;
 
       if (session.support) {
-        const sundayLabel = session.key === 'sunday' ? 'Walk duration or leave blank for full rest' : 'Class duration';
+        const sundayLabel = session.key === 'sunday' ? 'Longer walk duration or leave blank for full rest' : 'Class duration';
         return `
           <article class="session-card support-card">
             <div class="session-head">
@@ -873,7 +889,7 @@
               </div>
               <div class="field">
                 <label>${sundayLabel}</label>
-                <input data-support="${session.id}" data-field="notes" value="${escapeAttr(entry.notes)}" placeholder="${session.key === 'sunday' ? 'Walk, mobility, or full rest' : 'Class / focus'}" />
+                <input data-support="${session.id}" data-field="notes" value="${escapeAttr(entry.notes)}" placeholder="${session.key === 'sunday' ? 'Longer walk or full rest' : 'Class / focus'}" />
               </div>
             </div>
           </article>
@@ -882,7 +898,7 @@
 
       const exercises = session.exercises.map((exercise, index) => {
         const logged = entry.exercises[index] || {};
-        const loadLabel = exercise[0] === 'Plank' || exercise[0] === 'StairMaster' ? 'Load / level' : 'Load';
+        const loadLabel = 'Load';
         return `
           <div class="exercise-row">
             <div class="exercise-title">
