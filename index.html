@@ -1,0 +1,1207 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0b2418" />
+  <meta name="description" content="A mobile-friendly 12-week strength, Pilates, and recovery tracker." />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Training Tracker" />
+  <title>12-Week Training Tracker</title>
+  <style>
+    :root {
+      --bg: #0c1711;
+      --bg-2: #13251a;
+      --panel: #1b3425;
+      --panel-2: #244630;
+      --panel-3: #315b40;
+      --text: #f5faf6;
+      --muted: #bfd1c4;
+      --border: #4f7a5d;
+      --accent: #72bd83;
+      --accent-2: #a4ddb0;
+      --deep: #2f7d4a;
+      --good: #9ce0ad;
+      --warn: #e9c46a;
+      --danger: #ff8f8f;
+      --shadow: 0 16px 42px rgba(0, 0, 0, .34);
+    }
+
+    * { box-sizing: border-box; }
+    html { color-scheme: dark; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at 15% 0%, rgba(114,189,131,.20), transparent 32rem),
+        linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    }
+
+    button, input, select, textarea { font: inherit; }
+    button { cursor: pointer; }
+    h1, h2, h3, p { margin-top: 0; }
+    .app { width: min(1180px, 100%); margin: 0 auto; padding: 18px; }
+    .subtle { color: var(--muted); }
+    .small { font-size: .9rem; }
+    .tiny { font-size: .76rem; }
+
+    header {
+      display: grid;
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+
+    .title-row {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+      font-size: clamp(1.7rem, 4vw, 2.55rem);
+      letter-spacing: -.03em;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border: 1px solid var(--border);
+      background: rgba(27,52,37,.88);
+      border-radius: 999px;
+      padding: 8px 11px;
+      color: var(--accent-2);
+      font-size: .82rem;
+      font-weight: 800;
+      box-shadow: var(--shadow);
+    }
+
+    .summary-grid {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .metric, .card {
+      background: linear-gradient(180deg, rgba(36,70,48,.98), rgba(27,52,37,.98));
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .metric { padding: 14px; }
+    .metric strong {
+      display: block;
+      margin-top: 4px;
+      font-size: 1.65rem;
+      line-height: 1.08;
+    }
+
+    .progress-track {
+      height: 9px;
+      background: #13251a;
+      border: 1px solid #416b4f;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 9px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--deep), var(--accent-2));
+      transition: width .2s ease;
+    }
+
+    nav {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding: 2px 0 6px;
+      margin-bottom: 16px;
+    }
+
+    .tab, .btn {
+      border: 1px solid var(--border);
+      background: var(--panel);
+      color: var(--text);
+      border-radius: 12px;
+      padding: 10px 13px;
+      font-weight: 800;
+    }
+
+    .tab { border-radius: 999px; flex: 0 0 auto; }
+    .tab.active, .btn.primary {
+      background: linear-gradient(135deg, var(--deep), var(--accent));
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    .btn:hover, .tab:hover { border-color: var(--accent-2); }
+    .btn.danger { color: var(--danger); }
+    .btn.ghost { background: transparent; }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    .week-toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      display: block;
+      color: var(--muted);
+      font-size: .76rem;
+      font-weight: 800;
+      margin-bottom: 5px;
+    }
+
+    select, input, textarea {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #15281c;
+      color: var(--text);
+      border-radius: 10px;
+      padding: 9px 10px;
+      outline: none;
+    }
+
+    select:focus, input:focus, textarea:focus {
+      border-color: var(--accent-2);
+      box-shadow: 0 0 0 3px rgba(123,207,145,.12);
+    }
+
+    textarea { min-height: 70px; resize: vertical; }
+
+    .week-banner {
+      display: flex;
+      justify-content: space-between;
+      gap: 14px;
+      align-items: center;
+      flex-wrap: wrap;
+      padding: 14px 15px;
+      margin-bottom: 14px;
+      border: 1px solid #5f956d;
+      border-radius: 16px;
+      background: linear-gradient(135deg, rgba(47,125,74,.38), rgba(36,70,48,.92));
+    }
+
+    .schedule-strip {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(80px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 5px;
+      margin-bottom: 15px;
+    }
+
+    .day-chip {
+      min-width: 80px;
+      padding: 10px 8px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      background: rgba(27,52,37,.94);
+      color: var(--text);
+      text-align: center;
+    }
+
+    .day-chip strong { display: block; margin-bottom: 4px; }
+    .day-chip.lift { outline: 1px solid rgba(164,221,176,.45); }
+    .day-chip.support { background: rgba(49,91,64,.94); }
+    .day-chip.rest { opacity: .78; }
+
+    .day-chip.active {
+      border-color: var(--accent-2);
+      background: linear-gradient(135deg, var(--deep), var(--accent));
+      color: #fff;
+      box-shadow: 0 0 0 2px rgba(164,221,176,.18);
+    }
+
+    .day-chip.active .small { color: #fff; }
+
+    .session-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .session-grid.single-session {
+      grid-template-columns: minmax(0, 1fr);
+      max-width: 780px;
+      margin: 0 auto;
+    }
+
+    .session-card {
+      overflow: hidden;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      background: rgba(27,52,37,.98);
+      box-shadow: var(--shadow);
+    }
+
+    .session-card.support-card {
+      background: linear-gradient(180deg, rgba(49,91,64,.96), rgba(27,52,37,.98));
+    }
+
+    .session-head {
+      padding: 14px;
+      border-bottom: 1px solid var(--border);
+      background: linear-gradient(135deg, rgba(49,91,64,.94), rgba(16,39,27,.96));
+    }
+
+    .session-head-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .session-head h3 { margin: 8px 0 4px; font-size: 1.05rem; }
+
+    .badge {
+      display: inline-flex;
+      border: 1px solid #3a7652;
+      color: var(--accent-2);
+      background: rgba(114,189,131,.14);
+      border-radius: 999px;
+      padding: 4px 8px;
+      font-size: .7rem;
+      font-weight: 900;
+      white-space: nowrap;
+    }
+
+    .badge.done {
+      color: #082216;
+      background: var(--good);
+      border-color: var(--good);
+    }
+
+    .complete-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 11px 14px;
+      border-bottom: 1px solid var(--border);
+      font-weight: 800;
+    }
+
+    .complete-row input { width: 20px; height: 20px; accent-color: var(--accent); }
+
+    .exercise-list { padding: 5px 12px 10px; }
+
+    .exercise-row {
+      padding: 10px 0;
+      border-bottom: 1px dashed rgba(164,221,176,.28);
+    }
+
+    .exercise-row:last-child { border-bottom: 0; }
+
+    .exercise-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+      margin-bottom: 7px;
+    }
+
+    .target {
+      color: var(--accent-2);
+      font-size: .72rem;
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .exercise-fields {
+      display: grid;
+      grid-template-columns: .72fr 1fr 1.2fr;
+      gap: 7px;
+    }
+
+    .exercise-fields input { padding: 7px 8px; }
+
+    .notes {
+      padding: 0 12px 12px;
+    }
+
+    .support-fields {
+      display: grid;
+      grid-template-columns: .8fr .8fr 1.4fr;
+      gap: 8px;
+      padding: 12px;
+    }
+
+    .completion-map {
+      display: grid;
+      grid-template-columns: repeat(12, minmax(58px, 1fr));
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .week-cell {
+      min-width: 58px;
+      border: 1px solid var(--border);
+      border-radius: 13px;
+      padding: 9px 6px;
+      text-align: center;
+      background: var(--panel);
+    }
+
+    .week-cell.current { outline: 2px solid var(--accent-2); }
+
+    .dots {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 3px;
+      margin-top: 7px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #587562;
+    }
+
+    .dot.done { background: var(--good); }
+
+    .progress-layout {
+      display: grid;
+      grid-template-columns: 1.2fr .8fr;
+      gap: 14px;
+    }
+
+    .card { padding: 16px; }
+    .chart-wrap {
+      min-height: 280px;
+      display: grid;
+      place-items: center;
+    }
+
+    svg { width: 100%; height: auto; overflow: visible; }
+    .record-list { display: grid; gap: 8px; }
+
+    .record {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 10px 11px;
+      border-radius: 11px;
+      background: var(--panel-2);
+    }
+
+    .controls {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    @media (max-width: 900px) {
+      .summary-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+      .session-grid, .progress-layout { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 580px) {
+      .app { padding: 11px; }
+      .week-toolbar { grid-template-columns: 1fr; }
+      .summary-grid { grid-template-columns: 1fr 1fr; }
+      .metric strong { font-size: 1.35rem; }
+      .exercise-fields, .support-fields { grid-template-columns: .7fr 1fr 1fr; }
+      .toolbar-buttons { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+      /* Keep mobile navigation fully visible instead of horizontally scrolling. */
+      nav {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        overflow: visible;
+        padding-bottom: 0;
+      }
+
+      .tab {
+        width: 100%;
+        min-width: 0;
+        white-space: nowrap;
+      }
+
+      /* Show the full week at once on phones. */
+      .schedule-strip {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        overflow: visible;
+        padding-bottom: 0;
+      }
+
+      .day-chip {
+        min-width: 0;
+        padding: 10px 5px;
+      }
+
+      .day-chip .small {
+        display: block;
+        font-size: .75rem;
+        line-height: 1.25;
+      }
+
+      .day-chip:last-child {
+        grid-column: 2;
+      }
+
+    }
+
+    @media print {
+      body { background: #fff; color: #000; }
+      nav, .controls, .toolbar-buttons { display: none !important; }
+      .view { display: block !important; }
+      .session-card, .card, .metric { break-inside: avoid; box-shadow: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="title-row">
+        <div>
+          <h1>12-Week Training Tracker</h1>
+          <p class="subtle">Four-day strength split · Saturday Pilates · Sunday walk or rest</p>
+        </div>
+      </div>
+
+      <section class="summary-grid">
+        <div class="metric">
+          <span class="small subtle">Strength sessions</span>
+          <strong id="strengthCount">0 / 48</strong>
+          <div class="progress-track"><div class="progress-fill" id="strengthProgress"></div></div>
+        </div>
+        <div class="metric">
+          <span class="small subtle">Current week</span>
+          <strong id="currentWeek">Week 1</strong>
+          <span class="tiny subtle" id="currentDates"></span>
+        </div>
+        <div class="metric">
+          <span class="small subtle">Week completion</span>
+          <strong id="weekCount">0 / 6</strong>
+          <span class="tiny subtle">4 lifts + Pilates + Sunday recovery</span>
+        </div>
+        <div class="metric">
+          <span class="small subtle">Perfect weeks</span>
+          <strong id="perfectWeeks">0</strong>
+          <span class="tiny subtle">All six planned entries complete</span>
+        </div>
+      </section>
+    </header>
+
+    <nav aria-label="Tracker sections">
+      <button class="tab active" data-view="plan" type="button">Weekly Plan</button>
+      <button class="tab" data-view="overview" type="button">12-Week Map</button>
+      <button class="tab" data-view="progress" type="button">Progress</button>
+      <button class="tab" data-view="data" type="button">Data</button>
+    </nav>
+
+    <section class="view active" id="view-plan">
+      <div class="week-toolbar">
+        <div class="field">
+          <label for="weekSelect">Choose week</label>
+          <select id="weekSelect"></select>
+        </div>
+        <div class="toolbar-buttons">
+          <button class="btn" id="prevWeek" type="button">← Previous</button>
+          <button class="btn" id="nextWeek" type="button">Next →</button>
+        </div>
+      </div>
+
+      <div class="week-banner">
+        <div>
+          <strong id="weekTitle">Week 1</strong>
+          <div class="small subtle" id="weekSubtitle"></div>
+        </div>
+        <span class="badge" id="weekBadge">Build Week</span>
+      </div>
+
+      <div class="schedule-strip" id="daySelector" aria-label="Choose training day"></div>
+
+      <div class="session-grid single-session" id="sessionGrid"></div>
+    </section>
+
+    <section class="view" id="view-overview">
+      <div class="card">
+        <h2>12-Week Completion Map</h2>
+        <p class="small subtle">Six dots per week: four strength days, Pilates, then Sunday recovery.</p>
+        <div class="completion-map" id="completionMap"></div>
+      </div>
+    </section>
+
+    <section class="view" id="view-progress">
+      <div class="progress-layout">
+        <div class="card">
+          <div class="field" style="max-width:360px;">
+            <label for="exerciseSelect">Exercise</label>
+            <select id="exerciseSelect"></select>
+          </div>
+          <div class="chart-wrap" id="chartWrap"></div>
+        </div>
+        <div class="card">
+          <h2>Best Logged Loads</h2>
+          <div class="record-list" id="recordList"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="view" id="view-data">
+      <div class="card">
+        <h2>Backup & Export</h2>
+        <p class="small subtle">Entries autosave in this browser.</p>
+        <div class="controls">
+          <button class="btn primary" id="exportJson" type="button">Export Backup</button>
+          <button class="btn" id="exportCsv" type="button">Export CSV</button>
+          <label class="btn" style="display:inline-flex;align-items:center;">
+            Import Backup
+            <input type="file" id="importFile" accept=".json" hidden />
+          </label>
+          <button class="btn ghost" id="printBtn" type="button">Print / Save PDF</button>
+          <button class="btn danger" id="resetBtn" type="button">Reset All Entries</button>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'training-tracker-v1';
+    const START_DATE = new Date('2026-07-27T12:00:00');
+
+    const split = [
+      {
+        key: 'day1',
+        dayOffset: 0,
+        name: 'Day 1 — Lower Strength',
+        type: 'Strength',
+        exercises: [
+          ['Back Squat', 4, '5'],
+          ['Romanian Deadlift', 3, '8'],
+          ['Reverse Lunges', 3, '8 / leg'],
+          ['Step-Ups', 3, '10 / leg'],
+          ['Calf Raises', 4, '12'],
+          ['Plank', 3, '40–60 sec']
+        ]
+      },
+      {
+        key: 'day2',
+        dayOffset: 1,
+        name: 'Day 2 — Upper Strength',
+        type: 'Strength',
+        exercises: [
+          ['Bench Press', 4, '5'],
+          ['Bent-Over Row', 4, '6'],
+          ['Overhead Press', 3, '8'],
+          ['Lat Pulldown', 3, '10'],
+          ['Biceps Curls', 3, '10'],
+          ['Triceps Pushdowns', 3, '10']
+        ]
+      },
+      {
+        key: 'day3',
+        dayOffset: 3,
+        name: 'Day 3 — Lower: Glutes + Conditioning',
+        type: 'Strength + Conditioning',
+        exercises: [
+          ['Hip Thrusts', 4, '8'],
+          ['Leg Press', 3, '10'],
+          ['Bulgarian Split Squats', 3, '8 / leg'],
+          ['Hamstring Curls', 3, '12'],
+          ['Walking Lunges', 2, '20 steps'],
+          ['StairMaster', 1, '10–15 min']
+        ]
+      },
+      {
+        key: 'day4',
+        dayOffset: 4,
+        name: 'Day 4 — Upper Volume',
+        type: 'Volume',
+        exercises: [
+          ['Incline Dumbbell Press', 4, '10'],
+          ['Seated Cable Row', 4, '10'],
+          ['Lateral Raises', 3, '12'],
+          ['Face Pulls', 3, '15'],
+          ['Push-Ups', 3, 'AMRAP'],
+          ['Hanging Knee Raises', 3, '12']
+        ]
+      }
+    ];
+
+    const support = [
+      { key: 'pilates', dayOffset: 5, name: 'Saturday Pilates', type: 'Pilates' },
+      { key: 'sunday', dayOffset: 6, name: 'Sunday Walk / Rest', type: 'Recovery' }
+    ];
+
+    const phaseNames = [
+      'Baseline',
+      'Build',
+      'Build',
+      'Push',
+      'Deload',
+      'Build',
+      'Build',
+      'Push',
+      'Deload',
+      'Build',
+      'Peak',
+      'Consolidate'
+    ];
+
+    function addDays(date, days) {
+      const next = new Date(date);
+      next.setDate(next.getDate() + days);
+      return next;
+    }
+
+    function iso(date) { return date.toISOString().slice(0, 10); }
+
+    function formatDate(date, options = { month: 'short', day: 'numeric' }) {
+      return date.toLocaleDateString('en-US', options);
+    }
+
+    function buildPlan() {
+      return Array.from({ length: 12 }, (_, index) => {
+        const number = index + 1;
+        const start = addDays(START_DATE, index * 7);
+        const sessions = [
+          ...split.map(item => ({
+            ...item,
+            id: `w${number}-${item.key}`,
+            date: addDays(start, item.dayOffset),
+            support: false
+          })),
+          ...support.map(item => ({
+            ...item,
+            id: `w${number}-${item.key}`,
+            date: addDays(start, item.dayOffset),
+            support: true
+          }))
+        ];
+        return {
+          number,
+          start,
+          end: addDays(start, 6),
+          phase: phaseNames[index],
+          sessions
+        };
+      });
+    }
+
+    const plan = buildPlan();
+
+    function blankState() {
+      const entries = {};
+      plan.forEach(week => week.sessions.forEach(session => {
+        entries[session.id] = {
+          completed: false,
+          notes: '',
+          rpe: '',
+          duration: '',
+          exercises: session.support ? [] : session.exercises.map(ex => ({
+            sets: ex[1],
+            load: '',
+            reps: ex[2]
+          }))
+        };
+      }));
+      return { selectedWeek: 1, selectedSessionKey: 'day1', entries };
+    }
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (parsed?.entries) {
+          parsed.selectedSessionKey ||= 'day1';
+          return parsed;
+        }
+      } catch {}
+      return blankState();
+    }
+
+    let state = loadState();
+
+    function saveState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      refreshSummary();
+      renderCompletionMap();
+      renderProgress();
+    }
+
+    function renderWeekSelect() {
+      const select = document.getElementById('weekSelect');
+      select.innerHTML = plan.map(week =>
+        `<option value="${week.number}">Week ${week.number} · ${formatDate(week.start)}–${formatDate(week.end)}</option>`
+      ).join('');
+      select.value = String(state.selectedWeek);
+    }
+
+    function renderSelectedWeek() {
+      const week = plan[state.selectedWeek - 1];
+      document.getElementById('weekTitle').textContent = `Week ${week.number} · ${week.phase}`;
+      document.getElementById('weekSubtitle').textContent =
+        `${formatDate(week.start, { month: 'long', day: 'numeric' })}–${formatDate(week.end, { month: 'long', day: 'numeric', year: 'numeric' })}`;
+      document.getElementById('weekBadge').textContent = `${week.phase} Week`;
+
+      const availableKeys = ['day1', 'day2', 'wednesday', 'day3', 'day4', 'pilates', 'sunday'];
+      if (!availableKeys.includes(state.selectedSessionKey)) {
+        state.selectedSessionKey = availableKeys[0];
+      }
+
+      renderDaySelector(week);
+
+      if (state.selectedSessionKey === 'wednesday') {
+        document.getElementById('sessionGrid').innerHTML = renderWednesdayRest(week);
+      } else {
+        const selectedSession =
+          week.sessions.find(session => session.key === state.selectedSessionKey) ||
+          week.sessions[0];
+
+        document.getElementById('sessionGrid').innerHTML = renderSession(selectedSession);
+      }
+      bindSessionEvents();
+      renderWeekSelect();
+      refreshSummary();
+    }
+
+    function renderDaySelector(week) {
+      const labels = {
+        day1: ['Mon', 'Lower Strength'],
+        day2: ['Tue', 'Upper Strength'],
+        wednesday: ['Wed', 'Rest'],
+        day3: ['Thu', 'Lower + Cond.'],
+        day4: ['Fri', 'Upper Volume'],
+        pilates: ['Sat', 'Pilates'],
+        sunday: ['Sun', 'Walk / Rest']
+      };
+
+      const orderedKeys = ['day1', 'day2', 'wednesday', 'day3', 'day4', 'pilates', 'sunday'];
+      const selector = document.getElementById('daySelector');
+
+      selector.innerHTML = orderedKeys.map(key => {
+        const session = week.sessions.find(item => item.key === key);
+        const [day, label] = labels[key];
+        const kind = key === 'wednesday'
+          ? 'rest'
+          : session?.support
+            ? 'support'
+            : 'lift';
+        const active = key === state.selectedSessionKey ? 'active' : '';
+        const done = session && state.entries[session.id]?.completed ? ' ✓' : '';
+
+        return `
+          <button class="day-chip ${kind} ${active}" data-session-key="${key}" type="button">
+            <strong>${day}${done}</strong>
+            <span class="small">${label}</span>
+          </button>
+        `;
+      }).join('');
+
+      selector.querySelectorAll('[data-session-key]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.selectedSessionKey = button.dataset.sessionKey;
+          saveState();
+          renderSelectedWeek();
+        });
+      });
+    }
+
+    function renderWednesdayRest(week) {
+      const date = addDays(week.start, 2);
+
+      return `
+        <article class="session-card support-card">
+          <div class="session-head">
+            <div class="session-head-top">
+              <div>
+                <span class="badge">Recovery</span>
+                <h3>Wednesday Rest Day</h3>
+                <div class="small subtle">${formatDate(date, { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+              </div>
+              <span class="badge">Rest</span>
+            </div>
+          </div>
+          <div style="padding:18px 14px;">
+            <strong>Full rest or light recovery</strong>
+            <p class="small subtle" style="margin:8px 0 0;">No workout entry required.</p>
+          </div>
+        </article>
+      `;
+    }
+
+    function renderSession(session) {
+      const entry = state.entries[session.id];
+      const doneClass = entry.completed ? 'done' : '';
+      const badgeText = entry.completed ? 'Done' : session.type;
+
+      if (session.support) {
+        const sundayLabel = session.key === 'sunday' ? 'Walk duration or leave blank for full rest' : 'Class duration';
+        return `
+          <article class="session-card support-card">
+            <div class="session-head">
+              <div class="session-head-top">
+                <div>
+                  <span class="badge">${session.type}</span>
+                  <h3>${session.name}</h3>
+                  <div class="small subtle">${formatDate(session.date, { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+                </div>
+                <span class="badge ${doneClass}">${badgeText}</span>
+              </div>
+            </div>
+            <label class="complete-row">
+              <input type="checkbox" data-complete="${session.id}" ${entry.completed ? 'checked' : ''} />
+              Complete
+            </label>
+            <div class="support-fields">
+              <div class="field">
+                <label>Duration</label>
+                <input data-support="${session.id}" data-field="duration" value="${escapeAttr(entry.duration)}" placeholder="min" />
+              </div>
+              <div class="field">
+                <label>RPE</label>
+                <input data-support="${session.id}" data-field="rpe" value="${escapeAttr(entry.rpe)}" placeholder="1–10" />
+              </div>
+              <div class="field">
+                <label>${sundayLabel}</label>
+                <input data-support="${session.id}" data-field="notes" value="${escapeAttr(entry.notes)}" placeholder="${session.key === 'sunday' ? 'Walk, mobility, or full rest' : 'Class / focus'}" />
+              </div>
+            </div>
+          </article>
+        `;
+      }
+
+      const exercises = session.exercises.map((exercise, index) => {
+        const logged = entry.exercises[index] || {};
+        const loadLabel = exercise[0] === 'Plank' || exercise[0] === 'StairMaster' ? 'Load / level' : 'Load';
+        return `
+          <div class="exercise-row">
+            <div class="exercise-title">
+              <strong>${exercise[0]}</strong>
+              <span class="target">${exercise[1]} × ${exercise[2]}</span>
+            </div>
+            <div class="exercise-fields">
+              <div class="field">
+                <label>Sets</label>
+                <input data-exercise="${session.id}" data-index="${index}" data-field="sets" value="${escapeAttr(logged.sets)}" />
+              </div>
+              <div class="field">
+                <label>${loadLabel}</label>
+                <input data-exercise="${session.id}" data-index="${index}" data-field="load" value="${escapeAttr(logged.load)}" placeholder="—" />
+              </div>
+              <div class="field">
+                <label>Reps / time</label>
+                <input data-exercise="${session.id}" data-index="${index}" data-field="reps" value="${escapeAttr(logged.reps)}" />
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <article class="session-card">
+          <div class="session-head">
+            <div class="session-head-top">
+              <div>
+                <span class="badge">${session.type}</span>
+                <h3>${session.name}</h3>
+                <div class="small subtle">${formatDate(session.date, { weekday: 'long', month: 'short', day: 'numeric' })}</div>
+              </div>
+              <span class="badge ${doneClass}">${badgeText}</span>
+            </div>
+          </div>
+          <label class="complete-row">
+            <input type="checkbox" data-complete="${session.id}" ${entry.completed ? 'checked' : ''} />
+            Complete
+          </label>
+          <div class="exercise-list">${exercises}</div>
+          <div class="notes field">
+            <label>Session notes</label>
+            <textarea data-notes="${session.id}" placeholder="PRs, substitutions, fatigue, form notes">${escapeHtml(entry.notes)}</textarea>
+          </div>
+        </article>
+      `;
+    }
+
+    function bindSessionEvents() {
+      document.querySelectorAll('[data-complete]').forEach(input => {
+        input.addEventListener('change', event => {
+          state.entries[event.target.dataset.complete].completed = event.target.checked;
+          saveState();
+          renderSelectedWeek();
+        });
+      });
+
+      document.querySelectorAll('[data-exercise]').forEach(input => {
+        input.addEventListener('input', event => {
+          const id = event.target.dataset.exercise;
+          const index = Number(event.target.dataset.index);
+          const field = event.target.dataset.field;
+          state.entries[id].exercises[index][field] = event.target.value;
+          saveState();
+        });
+      });
+
+      document.querySelectorAll('[data-notes]').forEach(input => {
+        input.addEventListener('input', event => {
+          state.entries[event.target.dataset.notes].notes = event.target.value;
+          saveState();
+        });
+      });
+
+      document.querySelectorAll('[data-support]').forEach(input => {
+        input.addEventListener('input', event => {
+          const id = event.target.dataset.support;
+          const field = event.target.dataset.field;
+          state.entries[id][field] = event.target.value;
+          saveState();
+        });
+      });
+    }
+
+    function refreshSummary() {
+      const strengthSessions = plan.flatMap(w => w.sessions).filter(s => !s.support);
+      const strengthDone = strengthSessions.filter(s => state.entries[s.id]?.completed).length;
+      document.getElementById('strengthCount').textContent = `${strengthDone} / ${strengthSessions.length}`;
+      document.getElementById('strengthProgress').style.width = `${(strengthDone / strengthSessions.length) * 100}%`;
+
+      const week = plan[state.selectedWeek - 1];
+      const weekDone = week.sessions.filter(s => state.entries[s.id]?.completed).length;
+      document.getElementById('weekCount').textContent = `${weekDone} / 6`;
+      document.getElementById('currentWeek').textContent = `Week ${week.number}`;
+      document.getElementById('currentDates').textContent =
+        `${formatDate(week.start)}–${formatDate(week.end)}`;
+
+      const perfect = plan.filter(w => w.sessions.every(s => state.entries[s.id]?.completed)).length;
+      document.getElementById('perfectWeeks').textContent = String(perfect);
+    }
+
+    function renderCompletionMap() {
+      const current = state.selectedWeek;
+      document.getElementById('completionMap').innerHTML = plan.map(week => {
+        const dots = week.sessions.map(session =>
+          `<span class="dot ${state.entries[session.id]?.completed ? 'done' : ''}"></span>`
+        ).join('');
+        return `
+          <button class="week-cell ${week.number === current ? 'current' : ''}" data-open-week="${week.number}" type="button">
+            <strong>W${week.number}</strong>
+            <div class="dots">${dots}</div>
+          </button>
+        `;
+      }).join('');
+
+      document.querySelectorAll('[data-open-week]').forEach(button => {
+        button.addEventListener('click', () => {
+          state.selectedWeek = Number(button.dataset.openWeek);
+          saveState();
+          renderSelectedWeek();
+          switchView('plan');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+      });
+    }
+
+    function allExerciseNames() {
+      return [...new Set(split.flatMap(day => day.exercises.map(ex => ex[0])))];
+    }
+
+    function collectExerciseData(name) {
+      const points = [];
+      plan.forEach(week => {
+        week.sessions.filter(s => !s.support).forEach(session => {
+          const index = session.exercises.findIndex(ex => ex[0] === name);
+          if (index === -1) return;
+          const raw = state.entries[session.id]?.exercises[index]?.load;
+          const value = Number.parseFloat(raw);
+          if (Number.isFinite(value)) {
+            points.push({ week: week.number, value });
+          }
+        });
+      });
+      return points;
+    }
+
+    function renderProgressControls() {
+      const select = document.getElementById('exerciseSelect');
+      select.innerHTML = allExerciseNames().map(name => `<option>${escapeHtml(name)}</option>`).join('');
+      select.addEventListener('change', renderProgress);
+    }
+
+    function renderProgress() {
+      const selected = document.getElementById('exerciseSelect')?.value || allExerciseNames()[0];
+      const points = collectExerciseData(selected);
+      const chart = document.getElementById('chartWrap');
+
+      if (!points.length) {
+        chart.innerHTML = `<div class="subtle">Log a numeric load to build the chart.</div>`;
+      } else {
+        const width = 620, height = 260, pad = 42;
+        const max = Math.max(...points.map(p => p.value));
+        const min = Math.min(...points.map(p => p.value));
+        const range = Math.max(1, max - min);
+        const coords = points.map((p, i) => {
+          const x = points.length === 1 ? width / 2 : pad + i * ((width - pad * 2) / (points.length - 1));
+          const y = height - pad - ((p.value - min) / range) * (height - pad * 2);
+          return { ...p, x, y };
+        });
+        const line = coords.map(p => `${p.x},${p.y}`).join(' ');
+        chart.innerHTML = `
+          <svg viewBox="0 0 ${width} ${height}" role="img" aria-label="${escapeAttr(selected)} progress">
+            <line x1="${pad}" y1="${height-pad}" x2="${width-pad}" y2="${height-pad}" stroke="#4f7a5d" />
+            <line x1="${pad}" y1="${pad}" x2="${pad}" y2="${height-pad}" stroke="#4f7a5d" />
+            <polyline fill="none" stroke="#a4ddb0" stroke-width="4" points="${line}" />
+            ${coords.map(p => `
+              <circle cx="${p.x}" cy="${p.y}" r="5" fill="#9ce0ad" />
+              <text x="${p.x}" y="${p.y-10}" text-anchor="middle" fill="#f5faf6" font-size="12">${p.value}</text>
+              <text x="${p.x}" y="${height-15}" text-anchor="middle" fill="#bfd1c4" font-size="11">W${p.week}</text>
+            `).join('')}
+          </svg>
+        `;
+      }
+
+      const records = allExerciseNames().map(name => {
+        const values = collectExerciseData(name).map(point => point.value);
+        return { name, best: values.length ? Math.max(...values) : null };
+      }).sort((a, b) => (b.best || 0) - (a.best || 0));
+
+      document.getElementById('recordList').innerHTML = records.map(record => `
+        <div class="record">
+          <span class="small">${escapeHtml(record.name)}</span>
+          <strong>${record.best === null ? '—' : record.best}</strong>
+        </div>
+      `).join('');
+    }
+
+    function switchView(view) {
+      document.querySelectorAll('.tab').forEach(tab =>
+        tab.classList.toggle('active', tab.dataset.view === view)
+      );
+      document.querySelectorAll('.view').forEach(section =>
+        section.classList.toggle('active', section.id === `view-${view}`)
+      );
+      if (view === 'progress') renderProgress();
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+    }
+
+    function escapeAttr(value) { return escapeHtml(value); }
+
+    function downloadFile(filename, content, type) {
+      const blob = new Blob([content], { type });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportCsv() {
+      const rows = [['Week','Date','Session','Completed','Exercise','Sets','Load','Reps_or_Time','Notes']];
+      plan.forEach(week => week.sessions.forEach(session => {
+        const entry = state.entries[session.id];
+        if (session.support) {
+          rows.push([
+            week.number, iso(session.date), session.name, entry.completed ? 'Yes' : 'No',
+            '', '', entry.duration, entry.rpe, entry.notes
+          ]);
+        } else {
+          session.exercises.forEach((exercise, index) => {
+            const logged = entry.exercises[index];
+            rows.push([
+              week.number, iso(session.date), session.name, entry.completed ? 'Yes' : 'No',
+              exercise[0], logged.sets, logged.load, logged.reps, entry.notes
+            ]);
+          });
+        }
+      }));
+      const csv = rows.map(row =>
+        row.map(value => `"${String(value ?? '').replaceAll('"', '""')}"`).join(',')
+      ).join('\n');
+      downloadFile('workout-data.csv', csv, 'text/csv');
+    }
+
+    document.querySelectorAll('.tab').forEach(tab =>
+      tab.addEventListener('click', () => switchView(tab.dataset.view))
+    );
+
+    document.getElementById('weekSelect').addEventListener('change', event => {
+      state.selectedWeek = Number(event.target.value);
+      saveState();
+      renderSelectedWeek();
+    });
+
+    document.getElementById('prevWeek').addEventListener('click', () => {
+      state.selectedWeek = Math.max(1, state.selectedWeek - 1);
+      saveState();
+      renderSelectedWeek();
+    });
+
+    document.getElementById('nextWeek').addEventListener('click', () => {
+      state.selectedWeek = Math.min(12, state.selectedWeek + 1);
+      saveState();
+      renderSelectedWeek();
+    });
+
+    document.getElementById('exerciseSelect').addEventListener('change', renderProgress);
+
+    document.getElementById('exportJson').addEventListener('click', () => {
+      downloadFile('workout-backup.json', JSON.stringify(state, null, 2), 'application/json');
+    });
+
+    document.getElementById('exportCsv').addEventListener('click', exportCsv);
+    document.getElementById('printBtn').addEventListener('click', () => window.print());
+
+    document.getElementById('importFile').addEventListener('change', event => {
+      const file = event.target.files?.[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.addEventListener('load', () => {
+        try {
+          const imported = JSON.parse(reader.result);
+          if (!imported?.entries) throw new Error('Invalid backup');
+          state = imported;
+          saveState();
+          renderSelectedWeek();
+          alert('Backup imported.');
+        } catch {
+          alert('That file is not a valid tracker backup.');
+        }
+      });
+      reader.readAsText(file);
+      event.target.value = '';
+    });
+
+    document.getElementById('resetBtn').addEventListener('click', () => {
+      if (!confirm('Reset all workout entries?')) return;
+      state = blankState();
+      saveState();
+      renderSelectedWeek();
+    });
+
+    renderWeekSelect();
+    renderProgressControls();
+    renderSelectedWeek();
+    renderCompletionMap();
+    renderProgress();
+  </script>
+</body>
+</html>
